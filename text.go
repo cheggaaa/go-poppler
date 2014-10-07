@@ -2,6 +2,12 @@ package poppler
 
 import ()
 
+type TextEl struct {
+	Text  string
+	Attrs *TextAttributes
+	Rect  Rectangle
+}
+
 type TextAttributes struct {
 	FontName             string
 	FontSize             float64

@@ -3,9 +3,9 @@ package poppler
 // #cgo pkg-config: --cflags-only-I poppler-glib
 // #include <poppler.h>
 // #include <glib.h>
-import (
-	"C"
-)
+import "C"
+import "unsafe"
+//import "fmt"
 
 type Page struct {
 	p poppDoc
@@ -20,7 +20,8 @@ func (p *Page) TextAttributes() (results []TextAttributes) {
 	defer C.poppler_page_free_text_attributes(a)
 	var attr *C.PopplerTextAttributes
 	results = make([]TextAttributes, 0)
-	for el := C.g_list_first(a); el != nil; el = el.next {
+	el := C.g_list_first(a);
+	for el != nil {
 		attr = (*C.PopplerTextAttributes)(el.data)
 		fn := *attr.font_name
 		result := TextAttributes{
@@ -36,6 +37,7 @@ func (p *Page) TextAttributes() (results []TextAttributes) {
 			},
 		}
 		results = append(results, result)
+		el = el.next
 	}
 	return
 }
@@ -81,6 +83,48 @@ func (p *Page) Images() (results []Image) {
 }
 
 func (p *Page) TextLayout() (layouts []Rectangle) {
-	
+	var rect *C.PopplerRectangle
+	var n C.guint
+	if toBool(C.poppler_page_get_text_layout(p.p, &rect, &n)) {
+		defer C.g_free((C.gpointer)(rect))
+		layouts = make([]Rectangle, int(n))
+        r := (*[1 << 30]C.PopplerRectangle)(unsafe.Pointer(rect))[:n:n]
+		for i := 0; i < int(n); i++ {
+			layouts[i] = Rectangle{
+				X1: float64(r[i].x1),
+				Y1: float64(r[i].y1),
+				X2: float64(r[i].x2),
+				Y2: float64(r[i].y2),
+			}
+		}
+	}
+	return
+}
+
+
+func (p *Page) TextWidthLayoutAndAttrs() (result []TextEl) {
+	text := p.Text()
+	attrs := p.TextAttributes()
+	layout := p.TextLayout()
+	result = make([]TextEl, len(layout))	
+	attrsRef := make([]*TextAttributes, len(attrs))
+	for i, a := range attrs {
+		attrsRef[i] = &a
+	}
+	i := 0
+	for _, t := range text {
+		var a *TextAttributes
+		for _, a = range attrsRef {
+			if i >= a.StartIndex || i <= a.EndIndex {
+				break
+			}
+		}
+		result[i] = TextEl{
+			Text : string(t),
+			Attrs: a,
+			Rect : layout[i],
+		}
+		i++
+	}
 	return
 }

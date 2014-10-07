@@ -31,3 +31,7 @@ func Open(filename string) (doc *Document, err error) {
 	}
 	return
 }
+
+func Version() string {
+	return C.GoString(C.poppler_get_version())
+}

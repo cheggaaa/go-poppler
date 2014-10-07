@@ -5,10 +5,7 @@ package poppler
 // #include <stdlib.h>
 // #include <glib.h>
 // #include <unistd.h>
-import (
-	"C"
-	//"unsafe"
-)
+import "C"
 
 type Document struct {
 	doc poppDoc
@@ -52,3 +49,9 @@ func (d *Document) HasAttachments() bool {
 func (d *Document) GetNAttachments() int {
 	return int(C.poppler_document_get_n_attachments(d.doc))
 }
+
+/*
+func (d *Document) GetAttachments() []Attachment {
+	return 
+}
+*/

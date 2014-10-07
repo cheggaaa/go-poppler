@@ -3,9 +3,7 @@ package poppler
 // #include <glib.h>
 // #include <unistd.h>
 // #include <stdlib.h>
-import (
-	"C"
-)
+import "C"
 
 func toString(in *C.gchar) string {
 	return C.GoString((*C.char)(in))
