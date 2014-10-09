@@ -102,7 +102,7 @@ func (p *Page) TextLayout() (layouts []Rectangle) {
 }
 
 
-func (p *Page) TextWidthLayoutAndAttrs() (result []TextEl) {
+func (p *Page) TextLayoutAndAttrs() (result []TextEl) {
 	text := p.Text()
 	attrs := p.TextAttributes()
 	layout := p.TextLayout()
