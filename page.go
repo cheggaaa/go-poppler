@@ -109,13 +109,14 @@ func (p *Page) TextLayoutAndAttrs() (result []TextEl) {
 	result = make([]TextEl, len(layout))	
 	attrsRef := make([]*TextAttributes, len(attrs))
 	for i, a := range attrs {
-		attrsRef[i] = &a
+		attr := a
+		attrsRef[i] = &attr
 	}
 	i := 0
 	for _, t := range text {
 		var a *TextAttributes
 		for _, a = range attrsRef {
-			if i >= a.StartIndex || i <= a.EndIndex {
+			if i >= a.StartIndex && i <= a.EndIndex {
 				break
 			}
 		}
