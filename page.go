@@ -8,7 +8,7 @@ import "unsafe"
 //import "fmt"
 
 type Page struct {
-	p poppDoc
+	p *C.struct__PopplerPage
 }
 
 func (p *Page) Text() string {

@@ -12,7 +12,7 @@ import (
 	"path/filepath"
 )
 
-type poppDoc *[0]byte
+type poppDoc *C.struct__PopplerDocument
 
 func Open(filename string) (doc *Document, err error) {	
 	filename, err = filepath.Abs(filename)

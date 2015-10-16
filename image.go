@@ -11,7 +11,7 @@ import "github.com/ungerik/go-cairo"
 type Image struct {
 	Id   int
 	Area Rectangle
-	p    poppDoc
+	p    *C.struct__PopplerPage
 }
 
 type Rectangle struct {
@@ -20,6 +20,6 @@ type Rectangle struct {
 
 func (im *Image) GetSurface() (cs *cairo.Surface) {
 	ci := C.poppler_page_get_image(im.p, C.gint(im.Id))
-	ctx := C.cairo_create(ci)	
+	ctx := C.cairo_create(ci)
 	return cairo.NewSurfaceFromC(ci, ctx)
 }
