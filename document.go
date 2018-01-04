@@ -13,7 +13,7 @@ type Document struct {
 
 type DocumentInfo struct {
 	PdfVersion, Title, Author, Subject, KeyWords, Creator, Producer, Metadata string
-	CreationDate, ModificationDate                                            int
+	CreationDate, ModificationDate, Pages                                     int
 	IsLinearized                                                              bool
 }
 
@@ -29,6 +29,7 @@ func (d *Document) Info() DocumentInfo {
 		Metadata:         toString(C.poppler_document_get_metadata(d.doc)),
 		CreationDate:     int(C.poppler_document_get_creation_date(d.doc)),
 		ModificationDate: int(C.poppler_document_get_modification_date(d.doc)),
+		Pages:            int(C.poppler_document_get_n_pages(d.doc)),
 		IsLinearized:     toBool(C.poppler_document_is_linearized(d.doc)),
 	}
 }
@@ -52,6 +53,6 @@ func (d *Document) GetNAttachments() int {
 
 /*
 func (d *Document) GetAttachments() []Attachment {
-	return 
+	return
 }
 */
