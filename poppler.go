@@ -1,6 +1,6 @@
 package poppler
 
-// #cgo pkg-config: --cflags-only-I poppler-glib
+// #cgo pkg-config: poppler-glib
 // #include <poppler.h>
 // #include <stdlib.h>
 // #include <glib.h>
