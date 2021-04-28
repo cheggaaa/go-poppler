@@ -4,8 +4,11 @@ package poppler
 // #include <poppler.h>
 // #include <glib.h>
 import "C"
-import "unsafe"
-import "github.com/ungerik/go-cairo"
+import (
+	"unsafe"
+
+	"github.com/ungerik/go-cairo"
+)
 
 // Image
 
