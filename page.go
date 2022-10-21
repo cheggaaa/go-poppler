@@ -24,9 +24,9 @@ func (p *Page) TextAttributes() (results []TextAttributes) {
 	el := C.g_list_first(a)
 	for el != nil {
 		attr = (*C.PopplerTextAttributes)(el.data)
-		fn := *attr.font_name
+		fn := attr.font_name
 		result := TextAttributes{
-			FontName:     toString(&fn),
+			FontName:     toString(fn),
 			FontSize:     float64(attr.font_size),
 			IsUnderlined: toBool(attr.is_underlined),
 			StartIndex:   int(attr.start_index),
