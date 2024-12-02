@@ -12,6 +12,7 @@ import "github.com/ungerik/go-cairo"
 
 type Page struct {
 	p *C.struct__PopplerPage
+	openedPopplerAnnotMappings []*C.struct__PopplerAnnotMapping
 }
 
 func (p *Page) Text() string {
@@ -133,6 +134,12 @@ func (p *Page) TextLayoutAndAttrs() (result []TextEl) {
 }
 
 func (p *Page) Close() {
+	for i := 0; i < len(p.openedPopplerAnnotMappings); i++ {
+//		C.g_object_unref(C.gpointer(p.openedPopplerAnnotMappings[i]))
+		C.poppler_annot_mapping_free(p.openedPopplerAnnotMappings[i])
+	}
+	p.openedPopplerAnnotMappings = []*C.struct__PopplerAnnotMapping{}
+
 	C.g_object_unref(C.gpointer(p.p))
 }
 
@@ -157,4 +164,31 @@ func (p *Page) ConvertToSVG(filename string){
 	// Close the SVG file
 	surface.ShowPage()
 	surface.Destroy()
+}
+func (p *Page) GetAnnots() (Annots []Annot) {
+	var annots []Annot
+
+	annotGlist := C.poppler_page_get_annot_mapping(p.p)
+
+	for annotGlist != nil {
+		popplerAnnot := (*C.PopplerAnnotMapping)(annotGlist.data)
+		p.openedPopplerAnnotMappings = append(p.openedPopplerAnnotMappings, popplerAnnot)
+
+		annot := Annot{
+			am: popplerAnnot,
+		}
+		
+		annots = append(annots, annot)
+
+		annotGlist = annotGlist.next
+	}
+
+	C.g_list_free(annotGlist)
+
+	return annots
+}
+
+func (p *Page) AnnotText(a Annot) string {
+	cText := C.poppler_page_get_text_for_area(p.p, &a.am.area)
+	return C.GoString(cText)
 }
