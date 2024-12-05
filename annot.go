@@ -143,6 +143,7 @@ func (a *Annot) Quads() []Quad {
 
 func (a *Annot) Close() {
 	C.poppler_annot_mapping_free((*C.struct__PopplerAnnotMapping)(a.am))
+	a.am = nil
 }
 
 func (a *Annot) SetColor(c Color){
