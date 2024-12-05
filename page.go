@@ -90,7 +90,8 @@ func (p *Page) TextLayout() (layouts []Rectangle) {
 	var rect *C.PopplerRectangle
 	var n C.guint
 	if toBool(C.poppler_page_get_text_layout(p.p, &rect, &n)) {
-		defer C.g_free((C.gpointer)(rect))
+		defer gFree(rect)
+		//defer C.g_free((C.gpointer)(rect))
 		layouts = make([]Rectangle, int(n))
 		r := (*[1 << 30]C.PopplerRectangle)(unsafe.Pointer(rect))[:n:n]
 		for i := 0; i < int(n); i++ {
@@ -134,13 +135,11 @@ func (p *Page) TextLayoutAndAttrs() (result []TextEl) {
 }
 
 func (p *Page) Close() {
-	for i := 0; i < len(p.openedPopplerAnnotMappings); i++ {
-//		C.g_object_unref(C.gpointer(p.openedPopplerAnnotMappings[i]))
-		C.poppler_annot_mapping_free(p.openedPopplerAnnotMappings[i])
-	}
-	p.openedPopplerAnnotMappings = []*C.struct__PopplerAnnotMapping{}
-
+	p.closeAnnotMappings()
 	C.g_object_unref(C.gpointer(p.p))
+
+	/* avoid double free */
+	p.p = nil
 }
 
 // Converts a page into SVG and saves to file.
@@ -165,11 +164,21 @@ func (p *Page) ConvertToSVG(filename string){
 	surface.ShowPage()
 	surface.Destroy()
 }
+
+func (p *Page) closeAnnotMappings(){
+	for i := 0; i < len(p.openedPopplerAnnotMappings); i++ {
+		C.poppler_annot_mapping_free(p.openedPopplerAnnotMappings[i])
+	}
+
+	p.openedPopplerAnnotMappings = []*C.struct__PopplerAnnotMapping{}
+}
+
 func (p *Page) GetAnnots() (Annots []Annot) {
 	var annots []Annot
 
 	annotGlist := C.poppler_page_get_annot_mapping(p.p)
 
+	p.closeAnnotMappings()
 	for annotGlist != nil {
 		popplerAnnot := (*C.PopplerAnnotMapping)(annotGlist.data)
 		p.openedPopplerAnnotMappings = append(p.openedPopplerAnnotMappings, popplerAnnot)
@@ -191,4 +200,11 @@ func (p *Page) GetAnnots() (Annots []Annot) {
 func (p *Page) AnnotText(a Annot) string {
 	cText := C.poppler_page_get_text_for_area(p.p, &a.am.area)
 	return C.GoString(cText)
+}
+
+func (p *Page) AddAnnot(a Annot) {
+	C.poppler_page_add_annot(p.p, a.am.annot)
+}
+func (p *Page) RemoveAnnot(a Annot) {
+	C.poppler_page_remove_annot(p.p, a.am.annot)
 }

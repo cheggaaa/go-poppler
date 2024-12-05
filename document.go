@@ -7,6 +7,12 @@ package poppler
 // #include <unistd.h>
 import "C"
 
+import (
+	"errors"
+	"unsafe"
+	"path/filepath"
+)
+
 type Document struct {
 	doc                poppDoc
 	openedPopplerPages []*C.struct__PopplerPage
@@ -42,7 +48,7 @@ func (d *Document) GetNPages() int {
 func (d *Document) GetPage(i int) (page *Page) {
 	p := C.poppler_document_get_page(d.doc, C.int(i))
 	d.openedPopplerPages = append(d.openedPopplerPages, p)
-	
+
 	page = &Page{
 		p:                p,
 		openedPopplerAnnotMappings: []*C.struct__PopplerAnnotMapping{},
@@ -64,6 +70,75 @@ func (d *Document) Close() {
 	}
 	d.openedPopplerPages = []*C.struct__PopplerPage{}
 	C.g_object_unref(C.gpointer(d.doc))
+}
+
+func (d *Document) NewAnnot(t AnnotType, r Rectangle, q []Quad) (Annot, error) {
+	am := C.poppler_annot_mapping_new();
+
+	annot := Annot {
+		am: am,
+	}
+
+	pRect := rectangleToPopplerRectangle(r)
+
+	pQuad := quadsToGArray(q)
+	defer C.g_array_free(pQuad, 1)
+
+
+	switch (t){
+	case AnnotHighlight:
+		am.annot = C.poppler_annot_text_markup_new_highlight(d.doc, &pRect, pQuad)
+	case AnnotUnderline:
+		am.annot = C.poppler_annot_text_markup_new_underline(d.doc, &pRect, pQuad)
+	case AnnotSquiggly:
+		am.annot = C.poppler_annot_text_markup_new_squiggly(d.doc, &pRect, pQuad)
+	case AnnotStrikeOut:
+		am.annot = C.poppler_annot_text_markup_new_strikeout(d.doc, &pRect, pQuad)
+	default:
+		C.poppler_annot_mapping_free(am)
+		return annot, errors.New("invalid type for new annotation")
+	}
+
+
+	if am.annot == nil {
+		C.poppler_annot_mapping_free(am)
+		return annot, errors.New("failed to create annotation")
+	}
+
+	/* Can't get real annot mapping area as done in
+	 * poppler_page_get_annot_mapping() since page is
+	 * needed for page->page->getCropBox() and
+	 * page->page->getRotate()
+	 *
+	 * as a placeholder we just use the annot rect
+	 */
+	annot.am.area = pRect
+
+	return annot, nil
+}
+
+func (d *Document) Save(filename string) (saved bool, err error) {
+	filename, err = filepath.Abs(filename)
+	if err != nil {
+		return false, err
+	}
+
+	var e *C.GError
+	cFilename := (*C.gchar)(C.CString(filename))
+	defer C.free(unsafe.Pointer(cFilename))
+
+	cUri := C.g_filename_to_uri(cFilename, nil, nil)
+	cBool := C.poppler_document_save (d.doc, cUri, &e);
+	if e != nil {
+		err = errors.New(C.GoString((*C.char)(e.message)))
+		return false, err
+	}
+
+	if cBool == C.TRUE {
+		return true, nil
+	}
+
+	return false, nil
 }
 
 /*

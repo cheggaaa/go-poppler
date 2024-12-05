@@ -9,6 +9,7 @@ package poppler
 //  return POPPLER_ANNOT_TEXT_MARKUP(annot);
 //}
 import "C"
+
 import "unsafe"
 //import "github.com/ungerik/go-cairo"
 
@@ -114,6 +115,7 @@ func (a *Annot) Color() Color {
 
 	return color
 }
+
 func (a *Annot) Name() string {
 	cText := C.poppler_annot_get_name(a.am.annot)
 	return C.GoString(cText)
@@ -134,19 +136,34 @@ func (a *Annot) Quads() []Quad {
 
 	q := C.poppler_annot_text_markup_get_quadrilaterals(textMarkup)
 	defer C.g_array_free(q, 1)
-	length := int(q.len)
 
-	quads := make([]Quad, length)
-
-	for i := 0; i < length; i++ {
-		item := (*C.PopplerQuadrilateral)(unsafe.Pointer(uintptr(unsafe.Pointer(q.data)) + uintptr(i)*unsafe.Sizeof(C.PopplerQuadrilateral{})))
-		quads[i] = Quad{
-			P1: Point{X: float64(item.p1.x), Y: float64(item.p1.y)},
-			P2: Point{X: float64(item.p2.x), Y: float64(item.p2.y)},
-			P3: Point{X: float64(item.p3.x), Y: float64(item.p3.y)},
-			P4: Point{X: float64(item.p4.x), Y: float64(item.p4.y)},
-		}
-	}
-
+	quads := gArrayToQuads(q)
 	return quads
+}
+
+func (a *Annot) Close() {
+	C.poppler_annot_mapping_free((*C.struct__PopplerAnnotMapping)(a.am))
+}
+
+func (a *Annot) SetColor(c Color){
+	pColor := C.poppler_color_new()
+	pColor.red = C.ushort(c.R)
+	pColor.green = C.ushort(c.G)
+	pColor.blue = C.ushort(c.B)
+	defer gFree(pColor)
+
+	C.poppler_annot_set_color(a.am.annot, pColor )
+}
+
+func (a *Annot) SetContents(c string){
+	cStr := C.CString(c)
+	defer C.free(unsafe.Pointer(cStr))
+
+	C.poppler_annot_set_contents(a.am.annot, cStr)
+}
+
+func  (a *Annot) SetFlags(f AnnotFlag){
+	pFlags := C.PopplerAnnotFlag(f)
+
+	C.poppler_annot_set_flags(a.am.annot, pFlags)
 }
