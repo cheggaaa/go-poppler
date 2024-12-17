@@ -109,6 +109,9 @@ func (a *Annot) Rect() Rectangle {
 
 func (a *Annot) Color() Color {
 	c := C.poppler_annot_get_color(a.am.annot)
+	if c == nil {
+		return Color{}
+	}
 	defer C.poppler_color_free(c)
 
 	color := Color{
