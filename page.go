@@ -90,8 +90,7 @@ func (p *Page) TextLayout() (layouts []Rectangle) {
 	var rect *C.PopplerRectangle
 	var n C.guint
 	if toBool(C.poppler_page_get_text_layout(p.p, &rect, &n)) {
-		defer gFree(rect)
-		//defer C.g_free((C.gpointer)(rect))
+		defer C.g_free((C.gpointer)(rect))
 		layouts = make([]Rectangle, int(n))
 		r := (*[1 << 30]C.PopplerRectangle)(unsafe.Pointer(rect))[:n:n]
 		for i := 0; i < int(n); i++ {

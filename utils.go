@@ -76,11 +76,3 @@ func rectangleToPopplerRectangle (r Rectangle) C.PopplerRectangle {
 
 	return pRect
 }
-
-func gFree(mem interface{}) {
-	p, ok := mem.(unsafe.Pointer)
-	if !ok {
-		panic("gFree argument should be castable to unsafe.Pointer")
-	}
-	C.g_free(C.gpointer(p))
-}
