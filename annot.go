@@ -89,7 +89,7 @@ func (a *Annot) Index() int {
 
 func (a *Annot) Date() string {
 	cText := C.poppler_annot_get_modified(a.am.annot)
-	return C.GoString(cText)
+	return toString(cText)
 }
 
 func (a *Annot) Rect() Rectangle {
@@ -125,12 +125,12 @@ func (a *Annot) Color() Color {
 
 func (a *Annot) Name() string {
 	cText := C.poppler_annot_get_name(a.am.annot)
-	return C.GoString(cText)
+	return toString(cText)
 }
 
 func (a *Annot) Contents() string {
 	cText := C.poppler_annot_get_contents(a.am.annot)
-	return C.GoString(cText)
+	return toString(cText)
 }
 
 func (a *Annot) Flags() AnnotFlag {

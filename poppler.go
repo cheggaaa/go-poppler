@@ -27,7 +27,7 @@ func Open(filename string) (doc *Document, err error) {
 	var d poppDoc
 	d = C.poppler_document_new_from_file((*C.char)(fn), nil, &e)
 	if e != nil {
-		err = errors.New(C.GoString((*C.char)(e.message)))
+		err = errors.New(toString((*C.char)(e.message)))
 	}
 	doc = &Document{
 		doc:                d,
@@ -45,7 +45,7 @@ func Load(data []byte) (doc *Document, err error) {
 
 	d = C.poppler_document_new_from_bytes(b, nil, &e)
 	if e != nil {
-		err = errors.New(C.GoString((*C.char)(e.message)))
+		err = errors.New(toString((*C.char)(e.message)))
 	}
 	doc = &Document{
 		doc: d,
@@ -54,5 +54,5 @@ func Load(data []byte) (doc *Document, err error) {
 }
 
 func Version() string {
-	return C.GoString(C.poppler_get_version())
+	return toString(C.poppler_get_version())
 }

@@ -16,7 +16,7 @@ type Page struct {
 }
 
 func (p *Page) Text() string {
-	return C.GoString(C.poppler_page_get_text(p.p))
+	return toString(C.poppler_page_get_text(p.p))
 }
 
 func (p *Page) TextAttributes() (results []TextAttributes) {
@@ -207,7 +207,7 @@ func (p *Page) GetAnnots() (Annots []*Annot) {
 
 func (p *Page) AnnotText(a Annot) string {
 	cText := C.poppler_page_get_text_for_area(p.p, &a.am.area)
-	return C.GoString(cText)
+	return toString(cText)
 }
 
 func (p *Page) AddAnnot(a Annot) {
