@@ -133,7 +133,7 @@ func (d *Document) Save(filename string) (saved bool, err error) {
 	cUri := C.g_filename_to_uri(cFilename, nil, nil)
 	cBool := C.poppler_document_save (d.doc, cUri, &e);
 	if e != nil {
-		err = errors.New(C.GoString((*C.char)(e.message)))
+		err = errors.New(toString((*C.char)(e.message)))
 		return false, err
 	}
 
